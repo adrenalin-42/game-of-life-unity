@@ -63,6 +63,7 @@ public class Testing : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
 
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
@@ -111,7 +112,6 @@ public class Testing : MonoBehaviour
 
     private void ActivateGame()
     {
-
         int[,] tempGridArray = new int[grid.width, grid.height];
 
         for (int i = 0; i < grid.height; i++)
@@ -245,7 +245,6 @@ public class Testing : MonoBehaviour
 
         grid.applyGrid(tempGridArray, Color.yellow, false);
     }
-
 
     private Vector3 GetMouseWorldPosition()
     {

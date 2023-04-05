@@ -200,4 +200,27 @@ public class Grid
         }
     }
 
+    /*public bool emptyGrid()
+    {
+        int isEmpty = 0;
+
+        for (int i = 0; i < gridArray.GetLength(0); i++)
+        {
+            for (int j = 0; j < gridArray.GetLength(1); j++)
+            {
+                if (gridArray[i, j] == 0)
+                {
+                    isEmpty++;
+                }
+            }
+        }
+        if(isEmpty == (gridArray.GetLength(0) * gridArray.GetLength(0)))
+        {
+            return true;
+        } else
+        {
+            return false;
+        }
+    }*/
+
 }
