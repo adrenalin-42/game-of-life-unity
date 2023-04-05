@@ -166,15 +166,38 @@ public class Grid
         GameObject.Destroy(this.gridGameObject);
     }
 
-    public void applyGrid(int [,] newGrid, Color color)
+    public void applyGrid(int [,] newGrid, Color color, bool overwrite = true)
     {
         // this.gridArray = newGrid;
         for (int i = 0; i < gridArray.GetLength(0); i++)
         {
             for (int j = 0; j < gridArray.GetLength(1); j++)
             {
-                SetValue(i, j, newGrid[i, j], color);
+                if (overwrite)
+                {
+                    SetValue(i, j, newGrid[i, j], color);
+                } else
+                {
+                    if (newGrid[i, j] != 0)
+                    {
+                        SetValue(i, j, newGrid[i, j], color);
+                    }
+                }
+                
             }
         }
     }
+
+    public void clearGrid()
+    {
+        // this.gridArray = newGrid;
+        for (int i = 0; i < gridArray.GetLength(0); i++)
+        {
+            for (int j = 0; j < gridArray.GetLength(1); j++)
+            {
+                SetValue(i, j, 0, Color.clear);
+            }
+        }
+    }
+
 }

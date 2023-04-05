@@ -1,24 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Testing : MonoBehaviour
 {
     private Grid grid;
     bool gameIsActive;
+    Slider speedSlider;
+    Slider sizeSlider;
+    float timer = 0f;
     void Start()
     {
-        grid = new Grid(28, 20, 5f, new Vector3(0, 0, 0));
-        Camera.main.transform.position = grid.GetDimensions();
-        gameIsActive = false;
-        GenerateRandomIsland();
+        float cellSize = 20f;
+        int gridWidth = Mathf.FloorToInt(Screen.width / cellSize);
+        int gridHeight = Mathf.FloorToInt(Screen.height / cellSize);
 
+        Debug.Log(gridWidth);
+        Debug.Log(gridHeight);
+
+        grid = new Grid(30, 20, 5f, new Vector3(0, 0, 0));
+        Camera.main.transform.position = grid.GetDimensions();
+        Camera.main.orthographicSize = cellSize * 2.5f;
+        gameIsActive = false;
+
+        speedSlider = GameObject.Find("Speed").GetComponent<Slider>();
+        sizeSlider = GameObject.Find("CellSize").GetComponent<Slider>();
+
+        sizeSlider.onValueChanged.AddListener(delegate { OnValueChanged(); });
+    }
+
+    void OnValueChanged()
+    {
+        Camera.main.orthographicSize = sizeSlider.value;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
+        timer += Time.deltaTime;
+
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
             Vector3 mouseWorldPosition = GetMouseWorldPosition();
@@ -33,15 +55,28 @@ public class Testing : MonoBehaviour
             }
             }
         }
+        if (Input.GetKeyDown("c") && !gameIsActive)
+        {
+            grid.clearGrid();
+        }
+        if (Input.GetKeyDown("i") && !gameIsActive)
+        {
+            GenerateRandomIsland();
+        }
+        if(Input.GetKeyDown("r") && !gameIsActive)
+        {
+            GenerateRandomCells(0.15f);
+        }
         if (Input.GetKeyDown("k"))
         {
             
             gameIsActive = !gameIsActive;
         }
-        if (gameIsActive)
+        if (gameIsActive && timer > 1f)
         {
-            if (Time.frameCount % 60 == 0)
-                ActivateGame();
+            //if (Time.frameCount % speedSlider.value  == 0)
+            ActivateGame();
+            timer = timer - 1f;
         }
     }
 
@@ -153,8 +188,27 @@ public class Testing : MonoBehaviour
                 }
             }
         }
-        grid.applyGrid(tempGridArray, Color.green);
+        grid.applyGrid(tempGridArray, Color.green, false);
     }
+
+    private void GenerateRandomCells(float percentage)
+    {
+        int[,] tempGridArray = new int[grid.width, grid.height];
+
+        for (int i = 0; i < grid.height; i++)
+        {
+            for (int j = 0; j < grid.width; j++)
+            {
+                if (Random.value < percentage && grid.gridArray[j, i] != 666)
+                {
+                    tempGridArray[j, i] = 1;
+                }
+            }
+        }
+
+        grid.applyGrid(tempGridArray, Color.yellow, false);
+    }
+
 
     private Vector3 GetMouseWorldPosition()
     {
