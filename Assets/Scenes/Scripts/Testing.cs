@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
 
 public class Testing : MonoBehaviour
 {
@@ -9,6 +11,9 @@ public class Testing : MonoBehaviour
     bool gameIsActive;
     Slider speedSlider;
     Slider sizeSlider;
+    TMP_InputField generationsControl = null;
+    int generationCounter = 0;
+
     float timer = 0f;
     void Start()
     {
@@ -26,11 +31,31 @@ public class Testing : MonoBehaviour
 
         speedSlider = GameObject.Find("Speed").GetComponent<Slider>();
         sizeSlider = GameObject.Find("CellSize").GetComponent<Slider>();
+        generationsControl = GameObject.Find("GenerationsControl").GetComponent<TMP_InputField>();
+        sizeSlider.onValueChanged.AddListener(delegate { sizeSliderUpdate(); });
+        generationsControl.onEndEdit.AddListener(delegate { applyGenerations(generationsControl.text); });
 
-        sizeSlider.onValueChanged.AddListener(delegate { OnValueChanged(); });
+        GameObject.Find("Button_Island").GetComponent<Button>().onClick.AddListener(delegate { GenerateRandomIsland(); });
     }
 
-    void OnValueChanged()
+    void applyGenerations(string generationsString)
+    {
+        if (string.IsNullOrEmpty(generationsString))
+        {
+            return;
+        }
+
+        int generations = int.Parse(generationsString);
+
+        gameIsActive = false;
+
+        for (int i = 0; i < generations; i++)
+        {
+            ActivateGame();
+        }
+    }
+
+    void sizeSliderUpdate()
     {
         Camera.main.orthographicSize = sizeSlider.value;
     }
@@ -38,8 +63,6 @@ public class Testing : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        timer += Time.deltaTime;
 
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
@@ -57,6 +80,8 @@ public class Testing : MonoBehaviour
         }
         if (Input.GetKeyDown("c") && !gameIsActive)
         {
+            generationCounter = 0;
+            UpdateGenerations();
             grid.clearGrid();
         }
         if (Input.GetKeyDown("i") && !gameIsActive)
@@ -72,11 +97,15 @@ public class Testing : MonoBehaviour
             
             gameIsActive = !gameIsActive;
         }
+        if (gameIsActive)
+        {
+            timer += Time.deltaTime;
+        }
         if (gameIsActive && timer > 1f)
         {
             //if (Time.frameCount % speedSlider.value  == 0)
             ActivateGame();
-            timer = timer - 1f;
+            timer = 0f;
         }
     }
 
@@ -134,6 +163,14 @@ public class Testing : MonoBehaviour
         }
         // grid = tempGrid;
         grid.applyGrid(tempGridArray, Color.red);
+        generationCounter += 1;
+        UpdateGenerations();
+    }
+
+    void UpdateGenerations()
+    {
+        TMP_Text generationText = GameObject.Find("Generation_text").GetComponent<TMP_Text>();
+        generationText.text = "Generation: " + generationCounter;
     }
 
 
