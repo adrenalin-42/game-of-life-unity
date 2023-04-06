@@ -17,6 +17,7 @@ public class Testing : MonoBehaviour
     Vector2 firstPoint;
     Vector2 secondPoint;
     bool zoneIsActive;
+    int[,] cellLifePoints;
 
     float timer = 0f;
     void Start()
@@ -72,6 +73,17 @@ public class Testing : MonoBehaviour
         Debug.Log(offsetX + " " + offsetY + " " + zoneRadius);
         this.firstPoint = new Vector2(offsetX, offsetY);
         this.secondPoint = new Vector2(offsetX + zoneRadius, offsetY + zoneRadius);
+
+
+
+        cellLifePoints = new int[grid.width, grid.height];
+        for (int i = 0; i < cellLifePoints.GetLength(0); i++)
+        {
+            for (int j = 0; j < cellLifePoints.GetLength(1); j++)
+            {
+                cellLifePoints[i, j] = 5;
+            }
+        }
     }
 
     void applyGenerations(string generationsString)
@@ -196,11 +208,27 @@ public class Testing : MonoBehaviour
                         tempGridArray[j, i] = 0;
                     }
                     // If a dead cell in the zone has exactly 3 live neighbors, it can come to life if it "pays" a certain cost (e.g. deducting 1 from its initial life points).
-                    if (cellNeighbours == 3 && grid.gridArray[j, i] == 0)
+                    if (cellNeighbours == 3 && grid.gridArray[j, i] == 0 && cellLifePoints[j, i] > 0)
+                    {
+                        cellLifePoints[j, i] -= 1;
+                        tempGridArray[j, i] = 1;
+                    }
+
+                    // STANDARD RULES
+                    // Rule 2
+                    // Any live cell with two or three live neighbours lives on to the next generation.
+                    if ((cellNeighbours == 2 || cellNeighbours == 3) && grid.gridArray[j, i] > 0)
+                    {
+                        tempGridArray[j, i] = 1;
+                    }
+
+                    // Rule 3
+                    // Any live cell with more than three live neighbours dies, as if by overpopulation.
+                    if (cellNeighbours > 3 && grid.gridArray[j, i] > 0)
                     {
                         tempGridArray[j, i] = 0;
                     }
-                    tempGridArray[j, i] = grid.gridArray[j, i];
+                    // tempGridArray[j, i] = grid.gridArray[j, i];
                     continue;
                 }
 
