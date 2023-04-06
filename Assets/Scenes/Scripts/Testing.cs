@@ -185,12 +185,22 @@ public class Testing : MonoBehaviour
         {
             for (int j = 0; j < grid.width; j++)
             {
+                int cellNeighbours = GetNeighbourCount(grid.gridArray, grid.width, grid.height, j, i);
+
                 // SPECIAL ZONE
-                if (CellInSpecialZone(i, j) && grid.gridArray[j, i] > 0)
+                if (CellInSpecialZone(i, j))
                 {
-                    // if (j >)
-                    grid.DrawRectangle(Color.black, j, i);
-                    Debug.Log("Entered");
+                    // If a dead cell in the zone has fewer than 3 live neighbors, it cannot come to life.
+                    if (cellNeighbours < 3 && grid.gridArray[j, i] > 0)
+                    {
+                        tempGridArray[j, i] = 0;
+                    }
+                    // If a dead cell in the zone has exactly 3 live neighbors, it can come to life if it "pays" a certain cost (e.g. deducting 1 from its initial life points).
+                    if (cellNeighbours == 3 && grid.gridArray[j, i] == 0)
+                    {
+                        tempGridArray[j, i] = 0;
+                    }
+                    tempGridArray[j, i] = grid.gridArray[j, i];
                     continue;
                 }
 
@@ -200,10 +210,6 @@ public class Testing : MonoBehaviour
                     tempGridArray[j, i] = 666;
                     continue;
                 }
-                // int cellNeighbours = GetNeighbourCount(grid.gridArray, grid.width, grid.height, j, i);
-                int cellNeighbours = GetNeighbourCount(grid.gridArray, grid.width, grid.height, j, i);
-
-                //tempGridArray[j, i] = 0;
 
                 // Rule 1
                 // Any live cell with fewer than two live neighbours dies, as if by underpopulation.
@@ -252,7 +258,7 @@ public class Testing : MonoBehaviour
 
     private bool CellInSpecialZone(int x, int y)
     {
-        if (x >= firstPoint.x && x <= secondPoint.x && y >= firstPoint.y && y <= secondPoint.y)
+        if (x >= firstPoint.x && x < secondPoint.x && y >= firstPoint.y && y < secondPoint.y)
             return (true);
         return (false);
     }
@@ -270,7 +276,7 @@ public class Testing : MonoBehaviour
                     continue;
                 if (i + y - 1 >= 0 && i + y - 1 < gridHeight && j + x - 1 >= 0 && j + x - 1 < gridWidth)
                 {
-                    if (gridArray[j + x - 1, i + y - 1] > 0 && gridArray[j + x - 1, i + y - 1] != 666)
+                    if (gridArray[j + x - 1, i + y - 1] > 0 && gridArray[j + x - 1, i + y - 1] != 666) //  && !CellInSpecialZone(i, j)
                     {
                         neighbours += 1;
                     }
