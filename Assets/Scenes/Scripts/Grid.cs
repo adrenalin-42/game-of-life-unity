@@ -25,7 +25,7 @@ public class Grid
         this.gridGameObject = new GameObject("Grid");
         gridTransform = gridGameObject.transform;
 
-        for (int i = 0; i < gridArray.GetLength(0); i++)
+       /* for (int i = 0; i < gridArray.GetLength(0); i++)
         {
             for (int j = 0; j < gridArray.GetLength(1); j++)
             {
@@ -48,12 +48,46 @@ public class Grid
             }
         }
         DrawLine(GetWorldPosition(0, height), GetWorldPosition(width, height), Color.white, 0f);
-        DrawLine(GetWorldPosition(width, 0), GetWorldPosition(width, height), Color.white, 0f);
+        DrawLine(GetWorldPosition(width, 0), GetWorldPosition(width, height), Color.white, 0f);*/
 
         // SetValue(2, 1, 56);
     }
 
+    public void DrawZoneOutline(Vector2 firstPoint, Vector2 secondPoint)
+    {
+        int distanceX = Mathf.Abs(Mathf.FloorToInt(secondPoint.x - firstPoint.x));
+        int distanceY = Mathf.Abs(Mathf.FloorToInt(secondPoint.y - firstPoint.y));
+
+        DrawLine(GetWorldPosition(firstPoint.y, firstPoint.x), GetWorldPosition(firstPoint.y, firstPoint.x + distanceX), Color.red, "Line_Z_1");
+        DrawLine(GetWorldPosition(firstPoint.y, firstPoint.x), GetWorldPosition(firstPoint.y + distanceY, firstPoint.x), Color.red, "Line_Z_2");
+        DrawLine(GetWorldPosition(firstPoint.y, firstPoint.x + distanceX), GetWorldPosition(firstPoint.y + distanceY, firstPoint.x + distanceX), Color.red, "Line_Z_3");
+        DrawLine(GetWorldPosition(firstPoint.y + distanceY, firstPoint.x), GetWorldPosition(firstPoint.y + distanceY, firstPoint.x + distanceX), Color.red, "Line_Z_4");
+    }
+
+    public void RemoveZoneOutline()
+    {
+        GameObject.Destroy(GameObject.Find("Line_Z_1"));
+        GameObject.Destroy(GameObject.Find("Line_Z_2"));
+        GameObject.Destroy(GameObject.Find("Line_Z_3"));
+        GameObject.Destroy(GameObject.Find("Line_Z_4"));
+    }
+
     private Vector3 GetWorldPosition(int x, int y)
+    {
+        return (new Vector3(x, y) * cellSize + originPosition);
+    }
+
+    private Vector3 GetWorldPosition(float x, float y)
+    {
+        return (new Vector3(x, y) * cellSize + originPosition);
+    }
+
+    private Vector3 GetWorldPosition(int x, float y)
+    {
+        return (new Vector3(x, y) * cellSize + originPosition);
+    }
+
+    private Vector3 GetWorldPosition(float x, int y)
     {
         return (new Vector3(x, y) * cellSize + originPosition);
     }
@@ -63,6 +97,7 @@ public class Grid
         x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
         y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
     }
+    
 
     public void SetValue(int x, int y, int value, Color color)
     {
@@ -110,7 +145,7 @@ public class Grid
         return (new Vector3(width * cellSize / 2, height * cellSize / 2, -1));
     }
 
-    private void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
+/*    private void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
     {
         GameObject myLine = new GameObject("Line");
         myLine.transform.position = start;
@@ -128,6 +163,39 @@ public class Grid
         lr.endWidth = 0.5f;
         lr.SetPosition(0, start);
         lr.SetPosition(1, end);
+    }*/
+    private void DrawLine(Vector3 start, Vector3 end, Color color, string gameObjectName = "Line")
+    {
+        GameObject myLine = new GameObject(gameObjectName);
+        myLine.transform.position = start;
+        myLine.transform.SetParent(gridTransform, false);
+        myLine.AddComponent<LineRenderer>();
+        LineRenderer lr = myLine.GetComponent<LineRenderer>();
+        Material temp_mat = new Material(Shader.Find("Unlit/Texture"));
+        if (temp_mat)
+        {
+            lr.material = temp_mat;
+        }
+        lr.startColor = color;
+        lr.endColor = color;
+        lr.startWidth = 0.5f;
+        lr.endWidth = 0.5f;
+        lr.SetPosition(0, start);
+        lr.SetPosition(1, end);
+    }
+
+    public void DrawLines()
+    {
+        for (int i = 0; i < gridArray.GetLength(0); i++)
+        {
+            for (int j = 0; j < gridArray.GetLength(1); j++)
+            {
+                DrawLine(GetWorldPosition(i, j), GetWorldPosition(i, j + 1), Color.white, "Line_1_" + i + "_" + j);
+                DrawLine(GetWorldPosition(i, j), GetWorldPosition(i + 1, j), Color.white, "Line_2_" + i + "_" + j);
+            }
+        }
+        DrawLine(GetWorldPosition(0, height), GetWorldPosition(width, height), Color.white, "Line_3_1");
+        DrawLine(GetWorldPosition(width, 0), GetWorldPosition(width, height), Color.white, "Line_3_2");
     }
 
     private void DrawRectangle(Color color, int x, int y, bool active = true)
@@ -199,28 +267,5 @@ public class Grid
             }
         }
     }
-
-    /*public bool emptyGrid()
-    {
-        int isEmpty = 0;
-
-        for (int i = 0; i < gridArray.GetLength(0); i++)
-        {
-            for (int j = 0; j < gridArray.GetLength(1); j++)
-            {
-                if (gridArray[i, j] == 0)
-                {
-                    isEmpty++;
-                }
-            }
-        }
-        if(isEmpty == (gridArray.GetLength(0) * gridArray.GetLength(0)))
-        {
-            return true;
-        } else
-        {
-            return false;
-        }
-    }*/
 
 }

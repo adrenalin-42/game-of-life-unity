@@ -13,6 +13,10 @@ public class Testing : MonoBehaviour
     Slider sizeSlider;
     TMP_InputField generationsControl = null;
     int generationCounter = 0;
+    Vector2 firstPoint;
+    Vector2 secondPoint;
+    int[,] cellLifePoints;
+    bool zoneIsActive;
 
     float timer = 0f;
     void Start()
@@ -21,8 +25,7 @@ public class Testing : MonoBehaviour
         int gridWidth = Mathf.FloorToInt(Screen.width / cellSize);
         int gridHeight = Mathf.FloorToInt(Screen.height / cellSize);
 
-        Debug.Log(gridWidth);
-        Debug.Log(gridHeight);
+
 
         grid = new Grid(30, 20, 5f, new Vector3(0, 0, 0));
         Camera.main.transform.position = grid.GetDimensions();
@@ -36,8 +39,47 @@ public class Testing : MonoBehaviour
         generationsControl.onEndEdit.AddListener(delegate { applyGenerations(generationsControl.text); });
 
         GameObject.Find("Button_Island").GetComponent<Button>().onClick.AddListener(delegate { GenerateRandomIsland(); });
-    }
 
+        firstPoint = new Vector2();
+        secondPoint = new Vector2();
+        zoneIsActive = false;
+    }
+    void GenerateRandomSpecialZone()
+    {
+        int zoneRadius = Random.Range(5, 15);
+        int offsetY = Random.Range(0, grid.width - 15);
+        int offsetX = Random.Range(0, grid.height - 15);
+
+        int[,] tempGridArray = new int[grid.width, grid.height];
+
+        for (int i = 0; i < grid.height; i++)
+        {
+            for (int j = 0; j < grid.width; j++)
+            {
+                if (i > offsetY && i < offsetY + zoneRadius && j > offsetX && j < offsetX + zoneRadius)
+                {
+                    tempGridArray[j, i] = 69;
+                }
+                else
+                {
+                    tempGridArray[j, i] = 0;
+                }
+            }
+        }
+        this.firstPoint = new Vector2(offsetX, offsetY);
+        this.secondPoint = new Vector2(offsetX + zoneRadius, offsetY + zoneRadius);
+
+
+
+        cellLifePoints = new int[grid.width, grid.height];
+        for (int i = 0; i < cellLifePoints.GetLength(0); i++)
+        {
+            for (int j = 0; j < cellLifePoints.GetLength(1); j++)
+            {
+                cellLifePoints[i, j] = 5;
+            }
+        }
+    }
     void applyGenerations(string generationsString)
     {
         if (string.IsNullOrEmpty(generationsString))
@@ -79,6 +121,19 @@ public class Testing : MonoBehaviour
             }
             }
         }
+        if (Input.GetKeyDown("z"))
+        {
+            if (zoneIsActive)
+            {
+                grid.RemoveZoneOutline();
+            }
+            else
+            {
+                GenerateRandomSpecialZone();
+                grid.DrawZoneOutline(firstPoint, secondPoint);
+            }
+            zoneIsActive = !zoneIsActive;
+        }
         if (Input.GetKeyDown("c") && !gameIsActive)
         {
             generationCounter = 0;
@@ -93,7 +148,7 @@ public class Testing : MonoBehaviour
         {
             GenerateRandomCells(0.15f);
         }
-        if (Input.GetKeyDown("k"))
+        if (Input.GetKeyDown("s"))
         {
             
             gameIsActive = !gameIsActive;
@@ -102,16 +157,16 @@ public class Testing : MonoBehaviour
         {
             timer += Time.deltaTime;
         }
-        if (gameIsActive && timer > 1f)
+        if (gameIsActive)
         {
-            //if (Time.frameCount % speedSlider.value  == 0)
+            if (Time.frameCount % speedSlider.value  == 0)
             ActivateGame();
-            timer = 0f;
         }
     }
 
     private void ActivateGame()
     {
+
         int[,] tempGridArray = new int[grid.width, grid.height];
 
         for (int i = 0; i < grid.height; i++)
@@ -127,6 +182,40 @@ public class Testing : MonoBehaviour
                 int cellNeighbours = GetNeighbourCount(grid.gridArray, grid.width, grid.height, j, i);
 
                 //tempGridArray[j, i] = 0;
+
+                if (CellInSpecialZone(i, j))
+                {
+                    Debug.Log("CELL HERE");
+                    // If a dead cell in the zone has fewer than 3 live neighbors, it cannot come to life.
+                    if (cellNeighbours < 3 && grid.gridArray[j, i] > 0)
+                    {
+                        tempGridArray[j, i] = 0;
+                    }
+                    // If a dead cell in the zone has exactly 3 live neighbors, it can come to life if it "pays" a certain cost (e.g. deducting 1 from its initial life points).
+                    if (cellNeighbours == 3 && grid.gridArray[j, i] == 0 && cellLifePoints[j, i] > 0)
+                    {
+                        cellLifePoints[j, i] -= 1;
+                        tempGridArray[j, i] = 1;
+                    }
+
+                    // STANDARD RULES
+                    // Rule 2
+                    // Any live cell with two or three live neighbours lives on to the next generation.
+                    if ((cellNeighbours == 2 || cellNeighbours == 3) && grid.gridArray[j, i] > 0)
+                    {
+                        tempGridArray[j, i] = 1;
+                    }
+
+                    // Rule 3
+                    // Any live cell with more than three live neighbours dies, as if by overpopulation.
+                    if (cellNeighbours > 3 && grid.gridArray[j, i] > 0)
+                    {
+                        tempGridArray[j, i] = 0;
+                    }
+                    // tempGridArray[j, i] = grid.gridArray[j, i];
+                    continue;
+                }
+
 
                 // Rule 1
                 // Any live cell with fewer than two live neighbours dies, as if by underpopulation.
@@ -245,6 +334,14 @@ public class Testing : MonoBehaviour
 
         grid.applyGrid(tempGridArray, Color.yellow, false);
     }
+
+    private bool CellInSpecialZone(int x, int y)
+    {
+        if (x >= firstPoint.x && x < secondPoint.x && y >= firstPoint.y && y < secondPoint.y)
+            return (true);
+        return (false);
+    }
+
 
     private Vector3 GetMouseWorldPosition()
     {
